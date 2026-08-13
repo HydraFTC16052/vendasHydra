@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HYDRA 16052 — Programa de Vendas</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --preto:#111111; --preto-suave:#1C1C1E; --vermelho:#C1121F; --vermelho-escuro:#8f0e17;
+  --vermelho-suave:#FDEAEA; --branco:#FFFFFF; --cinza-claro:#F5F5F7; --cinza-medio:#E4E4E8;
+  --cinza:#6B6B70; --verde:#1E8E5A;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--cinza-claro);color:var(--preto);}
+h1,h2,h3{margin:0;}
+.hidden{display:none !important;}
+button{cursor:pointer;font-family:inherit;}
+.btn{background:var(--cinza-medio);color:var(--preto);border:none;border-radius:4px;padding:9px 14px;font-size:14px;font-weight:600;}
+.btn:hover{background:#d7d7dc;}
+.btn-primary{background:var(--vermelho);color:var(--branco);border:none;border-radius:4px;padding:9px 14px;font-size:14px;font-weight:600;}
+.btn-primary:hover{background:var(--vermelho-escuro);}
+.btn-sm{padding:5px 10px;font-size:12px;}
+input,select,textarea{padding:8px;border:1px solid var(--cinza-medio);border-radius:4px;font-size:14px;font-family:inherit;background:var(--branco);color:var(--preto);}
+label{display:block;font-size:12px;color:var(--cinza);margin-bottom:4px;font-weight:600;}
+.field{margin:0 8px 12px 0;}
+.form-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:0;}
+.titulo{font-size:19px;font-weight:700;color:var(--preto);}
+.sub{font-size:13px;color:var(--cinza);}
+.card-box{background:var(--branco);border:1px solid var(--cinza-medio);border-radius:6px;padding:14px 16px;}
+table{width:100%;border-collapse:collapse;background:var(--branco);}
+th{background:var(--preto-suave);color:var(--branco);text-align:left;padding:9px 10px;font-size:12.5px;font-weight:700;}
+td{padding:8px 10px;border-bottom:1px solid var(--cinza-medio);font-size:13.5px;}
+tr.tabela-row:hover{background:#FAFAFB;cursor:pointer;}
+tr.selected{background:var(--vermelho-suave) !important;}
+tr.baixo{background:#fde2e2;}
+.table-wrap{overflow-x:auto;border:1px solid var(--cinza-medio);border-radius:6px;}
+.topbar{background:var(--preto);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;}
+.topbar .brand b{color:var(--vermelho);font-size:17px;display:block;}
+.topbar .brand span{color:#B5B5BA;font-size:9px;}
+.topbar .user{text-align:right;}
+.topbar .user b{color:var(--branco);font-size:13px;display:block;}
+.topbar .user span{font-size:10px;font-weight:700;}
+.bar-red{background:var(--vermelho);height:3px;}
+.nav{display:flex;gap:2px;overflow-x:auto;background:var(--cinza-claro);padding:8px 12px 0;}
+.nav button{white-space:nowrap;border:none;padding:10px 16px;font-size:13px;font-weight:700;border-radius:6px 6px 0 0;background:var(--cinza-medio);color:var(--preto);}
+.nav button.active{background:var(--preto);color:var(--branco);}
+.content{padding:20px;max-width:1200px;margin:0 auto;}
+.cards{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+.stat-card{flex:1;min-width:160px;background:var(--branco);border:1px solid var(--cinza-medio);border-radius:6px;padding:14px 16px;}
+.stat-card .bar{height:3px;border-radius:2px;margin-bottom:8px;}
+.stat-card .lbl{color:var(--cinza);font-size:12px;}
+.stat-card .val{font-size:24px;font-weight:700;margin-top:4px;}
+.login-screen{min-height:100vh;background:var(--preto);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--branco);}
+.login-box{width:320px;}
+.login-box h1{color:var(--vermelho);font-size:26px;text-align:center;}
+.login-box p.sub2{text-align:center;color:var(--branco);font-size:13px;margin:2px 0 22px;}
+.login-box label{color:#ddd;}
+.login-box select,.login-box input{width:100%;margin-bottom:14px;}
+.login-box button{width:100%;padding:11px;font-size:15px;}
+.login-hint{color:var(--cinza);font-size:11px;text-align:center;margin-top:14px;line-height:1.5;}
+.err{color:var(--vermelho);font-size:13px;margin:-6px 0 12px;}
+.section{margin-bottom:28px;}
+.lock-wrap{max-width:340px;margin:60px auto;text-align:center;}
+.lock-wrap input{text-align:center;letter-spacing:4px;font-size:16px;width:100%;margin:12px 0;}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50;}
+.modal-box{background:var(--branco);border-radius:8px;padding:20px;width:520px;max-width:92vw;}
+.modal-box textarea{width:100%;height:260px;resize:vertical;margin:10px 0;}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+.checks{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0;}
+.checks label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--preto);font-weight:400;}
+.divider{border:none;border-top:1px solid var(--cinza-medio);margin:22px 0;}
+.small-note{font-size:12px;color:var(--cinza);margin-top:4px;}
+.custom-tab-box{background:var(--branco);border:1px solid var(--cinza-medio);border-radius:6px;padding:16px;white-space:pre-wrap;line-height:1.6;min-height:200px;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--preto);color:var(--branco);padding:12px 18px;border-radius:6px;font-size:13px;max-width:340px;z-index:100;white-space:pre-line;box-shadow:0 4px 14px rgba(0,0,0,.25);}
+.toast.err{background:var(--vermelho-escuro);}
+.cart-total{font-size:19px;font-weight:700;}
+.flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.qtd-input{width:70px;}
+@media(max-width:600px){.stat-card{min-width:130px;}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const SUPABASE_URL = 'https://jrxqedltsqqqdyjqivfd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyeHFlZGx0c3FxcWR5anFpdmZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU3NDQ5MDIsImV4cCI6MjEwMTMyMDkwMn0.H9qHp8kn66HSvYMBhYX5QimZNBFd49Q4f7rs1rMTt4k';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const ABAS_CONTROLAVEIS = [
+  ['aba_visivel_produtos','📦 Produtos','produtos'],
+  ['aba_visivel_etiquetas','🏷 Etiquetas','etiquetas'],
+  ['aba_visivel_eventos','📅 Eventos','eventos'],
+  ['aba_visivel_relatorios','📈 Relatórios','relatorios'],
+  ['aba_visivel_comparativo','📊 Comparativo','comparativo'],
+];
+
+let currentUser = null;
+let currentView = 'dashboard';
+let cart = [];
+let etiquetaQtds = {};
+let selProdutoId = null, selEventoId = null, selUsuarioLogin = null, selAbaId = null;
+let editingProdutoId = null, editingEventoId = null;
+let configDesbloqueada = false;
+let relatorioAtual = 'estudante';
+
+const app = document.getElementById('app');
+
+function esc(s){ if(s===null||s===undefined) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function moeda(v){ v = Number(v||0); return 'R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function toast(msg, isErr){
+  const t = document.createElement('div');
+  t.className = 'toast' + (isErr ? ' err' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 4200);
+}
+function confirmar(msg){ return window.confirm(msg); }
+
+// ---------------------------------------------------------------------
+// Config helpers
+// ---------------------------------------------------------------------
+async function getConfigValor(chave, padrao=null){
+  const { data } = await sb.from('configuracoes').select('valor').eq('chave', chave).maybeSingle();
+  return data ? data.valor : padrao;
+}
+async function setConfigValor(chave, valor){
+  await sb.from('configuracoes').upsert({ chave, valor: String(valor) }, { onConflict: 'chave' });
+}
+async function getVisibilidadeAbas(){
+  const chaves = ABAS_CONTROLAVEIS.map(a=>a[0]);
+  const { data } = await sb.from('configuracoes').select('chave,valor').in('chave', chaves);
+  const map = {};
+  (data||[]).forEach(r => map[r.chave] = r.valor);
+  const result = {};
+  ABAS_CONTROLAVEIS.forEach(([chave]) => { result[chave] = map[chave]===undefined ? true : map[chave]==='1'; });
+  return result;
+}
+
+// ---------------------------------------------------------------------
+// LOGIN
+// ---------------------------------------------------------------------
+async function renderLogin(){
+  const { data: estudantes } = await sb.from('estudantes').select('id,nome,login').eq('ativo', true).order('nome');
+  app.innerHTML = `
+    <div class="login-screen">
+      <div class="login-box">
+        <h1>HYDRA 16052</h1>
+        <p class="sub2">Programa de Vendas</p>
+        <label>Estudante</label>
+        <select id="loginEstudante">
+          ${(estudantes||[]).map(e=>`<option value="${esc(e.login)}">${esc(e.nome)} (${esc(e.login)})</option>`).join('')}
+        </select>
+        <label>PIN</label>
+        <input type="password" id="loginPin" />
+        <div class="err hidden" id="loginErr"></div>
+        <button class="btn-primary" id="btnEntrar">Entrar</button>
+        <p class="login-hint">Primeiro acesso? Use login "admin" e PIN "1234"<br>e cadastre os estudantes na aba Configurações.</p>
+      </div>
+    </div>`;
+  document.getElementById('btnEntrar').onclick = doLogin;
+  document.getElementById('loginPin').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+}
+
+async function doLogin(){
+  const login = document.getElementById('loginEstudante').value;
+  const pin = document.getElementById('loginPin').value.trim();
+  const errBox = document.getElementById('loginErr');
+  errBox.classList.add('hidden');
+  if(!login){ errBox.textContent='Selecione um estudante.'; errBox.classList.remove('hidden'); return; }
+  const { data } = await sb.from('estudantes').select('id,nome,login,pin,tipo').eq('login', login).eq('ativo', true).maybeSingle();
+  if(!data || String(data.pin) !== pin){
+    errBox.textContent = 'PIN incorreto.';
+    errBox.classList.remove('hidden');
+    return;
+  }
+  currentUser = { id: data.id, nome: data.nome, login: data.login, tipo: data.tipo || 'vendedor' };
+  currentView = 'dashboard';
+  renderShell();
+}
+
+function logout(){
+  currentUser = null;
+  cart = []; etiquetaQtds = {}; configDesbloqueada = false;
+  renderLogin();
+}
+
+// ---------------------------------------------------------------------
+// SHELL / NAV
+// ---------------------------------------------------------------------
+async function buildTabs(){
+  const admin = currentUser.tipo === 'admin';
+  const vis = await getVisibilidadeAbas();
+  const { data: abasPersonalizadas } = await sb.from('abas_personalizadas').select('id,titulo').order('id');
+  const tabs = [
+    { id:'dashboard', label:'🏠 Início' },
+    { id:'venda', label:'🛒 Nova Venda' },
+  ];
+  ABAS_CONTROLAVEIS.forEach(([chave,label,id])=>{
+    if(admin || vis[chave]) tabs.push({ id, label });
+  });
+  (abasPersonalizadas||[]).forEach(a=> tabs.push({ id:'custom:'+a.id, label:'🧩 '+a.titulo, custom:true, titulo:a.titulo }));
+  if(admin) tabs.push({ id:'config', label:'⚙ Configurações' });
+  return tabs;
+}
+
+async function renderShell(){
+  const admin = currentUser.tipo === 'admin';
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="brand"><b>HYDRA 16052</b><span>Programa de Vendas</span></div>
+      <div class="user">
+        <b>${esc(currentUser.nome)}</b>
+        <span style="color:${admin?'#ff6b6b':'#B5B5BA'}">${admin?'Administrador(a)':'Vendedor(a)'}</span>
+      </div>
+      <button class="btn btn-sm" style="margin-left:16px" id="btnSair">Sair</button>
+    </div>
+    <div class="bar-red"></div>
+    <div class="nav" id="nav"></div>
+    <div class="content" id="content"></div>
+  `;
+  document.getElementById('btnSair').onclick = logout;
+  const tabs = await buildTabs();
+  const nav = document.getElementById('nav');
+  nav.innerHTML = tabs.map(t=>`<button data-id="${t.id}" class="${currentView===t.id?'active':''}">${t.label}</button>`).join('');
+  nav.querySelectorAll('button').forEach(b=>{
+    b.onclick = ()=>{ currentView = b.dataset.id; renderShell(); };
+  });
+  renderView(currentView);
+}
+
+function renderView(view){
+  if(view === 'dashboard') return renderDashboard();
+  if(view === 'venda') return renderVenda();
+  if(view === 'produtos') return renderProdutos();
+  if(view === 'etiquetas') return renderEtiquetas();
+  if(view === 'eventos') return renderEventos();
+  if(view === 'relatorios') return renderRelatorios();
+  if(view === 'comparativo') return renderComparativo();
+  if(view === 'config') return renderConfig();
+  if(view.startsWith('custom:')) return renderCustomTab(view.split(':')[1]);
+}
+
+// ---------------------------------------------------------------------
+// DASHBOARD
+// ---------------------------------------------------------------------
+async function renderDashboard(){
+  const content = document.getElementById('content');
+  content.innerHTML = `<p>Carregando...</p>`;
+  const { count: nVendas } = await sb.from('vendas').select('*', { count:'exact', head:true });
+  const { data: vendasRows } = await sb.from('vendas').select('total');
+  const faturamento = (vendasRows||[]).reduce((s,r)=>s+Number(r.total||0),0);
+  const { data: itensRows } = await sb.from('itens_venda').select('quantidade,preco_unitario,custo_unitario');
+  const lucro = (itensRows||[]).reduce((s,r)=>s+(Number(r.preco_unitario)-Number(r.custo_unitario))*Number(r.quantidade),0);
+  const { data: produtosAtivos } = await sb.from('produtos').select('nome,estoque,estoque_minimo,categoria').eq('ativo', true);
+  const baixos = (produtosAtivos||[]).filter(p=>p.estoque<=p.estoque_minimo).sort((a,b)=>a.estoque-b.estoque);
+
+  content.innerHTML = `
+    <div class="section">
+      <div class="titulo">Visão geral</div>
+      <div class="sub">Resumo rápido do estoque e das vendas.</div>
+    </div>
+    <div class="cards">
+      <div class="stat-card"><div class="bar" style="background:var(--preto)"></div><div class="lbl">🧾 Vendas registradas</div><div class="val">${nVendas||0}</div></div>
+      <div class="stat-card"><div class="bar" style="background:var(--verde)"></div><div class="lbl">💰 Faturamento total</div><div class="val">${moeda(faturamento)}</div></div>
+      <div class="stat-card"><div class="bar" style="background:var(--verde)"></div><div class="lbl">📈 Lucro total</div><div class="val">${moeda(lucro)}</div></div>
+      <div class="stat-card"><div class="bar" style="background:var(--vermelho)"></div><div class="lbl">⚠ Estoque baixo</div><div class="val">${baixos.length}</div></div>
+    </div>
+    <div class="section">
+      <div class="titulo" style="color:var(--vermelho);font-size:15px">⚠ Alertas de estoque baixo</div>
+      <div class="table-wrap" style="margin-top:8px">
+        <table>
+          <thead><tr><th>Produto</th><th>Estoque atual</th><th>Estoque mínimo</th><th>Categoria</th></tr></thead>
+          <tbody>
+            ${baixos.length ? baixos.map(p=>`<tr><td>${esc(p.nome)}</td><td>${p.estoque}</td><td>${p.estoque_minimo}</td><td>${esc(p.categoria)||'-'}</td></tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--cinza)">Nenhum produto com estoque baixo.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ---------------------------------------------------------------------
+// PRODUTOS
+// ---------------------------------------------------------------------
+async function fetchProdutosAtivos(){
+  const { data } = await sb.from('produtos').select('*').eq('ativo', true).order('nome');
+  return data || [];
+}
+
+async function renderProdutos(){
+  const content = document.getElementById('content');
+  const produtos = await fetchProdutosAtivos();
+  content.innerHTML = `
+    <div class="flex-between section">
+      <div>
+        <div class="titulo">Cadastro de produtos</div>
+        <div class="sub">Cadastre um produto por vez no formulário abaixo, ou importe vários de uma vez por planilha (.csv).</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="btnBaixarModelo">📥 Baixar planilha modelo</button>
+        <button class="btn-primary" id="btnImportar">📤 Importar planilha de produtos</button>
+        <input type="file" id="fileImportar" accept=".csv" class="hidden">
+      </div>
+    </div>
+    <div class="card-box section">
+      <div class="form-row">
+        <div class="field"><label>Código (opcional)</label><input id="p_codigo" style="width:120px"></div>
+        <div class="field"><label>Nome do produto</label><input id="p_nome" style="width:220px"></div>
+        <div class="field"><label>Categoria</label><input id="p_categoria" style="width:150px"></div>
+        <div class="field"><label>Preço de custo (R$)</label><input id="p_custo" style="width:110px"></div>
+        <div class="field"><label>Margem de lucro (%)</label><input id="p_margem" style="width:110px"></div>
+        <div class="field"><label>Preço de venda (R$)</label><input id="p_venda" style="width:110px"></div>
+        <div class="field"><label>Estoque atual</label><input id="p_estoque" style="width:90px"></div>
+        <div class="field"><label>Estoque mínimo</label><input id="p_minimo" style="width:90px"></div>
+      </div>
+      <div class="sub" style="margin-bottom:10px">Preencha custo + margem para calcular o preço de venda automaticamente (ou digite o preço de venda direto).</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-primary" id="btnSalvarProduto">Salvar produto</button>
+        <button class="btn" id="btnLimparProduto">Limpar</button>
+        <button class="btn" id="btnExcluirProduto">Excluir selecionado</button>
+        <button class="btn" id="btnEtiquetaSelecionado">Gerar etiqueta do selecionado</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Custo</th><th>Margem</th><th>Venda</th><th>Estoque</th><th>Mínimo</th></tr></thead>
+        <tbody id="produtosTbody"></tbody>
+      </table>
+    </div>
+  `;
+
+  const custoEl = document.getElementById('p_custo'), margemEl = document.getElementById('p_margem'), vendaEl = document.getElementById('p_venda');
+  let recalculando = false;
+  function recalcFromMargem(){
+    if(recalculando) return;
+    const custo = parseFloat((custoEl.value||'0').replace(',','.'));
+    const margem = parseFloat((margemEl.value||'0').replace(',','.'));
+    if(!custo || custo<=0 || isNaN(custo) || isNaN(margem)) return;
+    recalculando = true;
+    vendaEl.value = (custo*(1+margem/100)).toFixed(2);
+    recalculando = false;
+  }
+  function recalcFromVenda(){
+    if(recalculando) return;
+    const custo = parseFloat((custoEl.value||'0').replace(',','.'));
+    const venda = parseFloat((vendaEl.value||'0').replace(',','.'));
+    if(!custo || custo<=0 || isNaN(custo) || isNaN(venda)) return;
+    recalculando = true;
+    margemEl.value = (((venda/custo)-1)*100).toFixed(1);
+    recalculando = false;
+  }
+  custoEl.addEventListener('keyup', recalcFromMargem);
+  margemEl.addEventListener('keyup', recalcFromMargem);
+  vendaEl.addEventListener('keyup', recalcFromVenda);
+
+  function limparForm(){
+    ['p_codigo','p_nome','p_categoria','p_custo','p_margem','p_venda','p_estoque','p_minimo'].forEach(id=>document.getElementById(id).value='');
+    editingProdutoId = null; selProdutoId = null;
+    desenharTabela();
+  }
+  document.getElementById('btnLimparProduto').onclick = limparForm;
+
+  function desenharTabela(){
+    const tbody = document.getElementById('produtosTbody');
+    tbody.innerHTML = produtos.map(p=>{
+      const baixo = p.estoque <= p.estoque_minimo;
+      return `<tr class="tabela-row ${baixo?'baixo':''} ${selProdutoId===p.id?'selected':''}" data-id="${p.id}">
+        <td>${esc(p.codigo)||'-'}</td><td>${esc(p.nome)}</td><td>${esc(p.categoria)||'-'}</td>
+        <td>${moeda(p.preco_custo)}</td><td>${(p.margem_lucro||0).toFixed(0)}%</td><td>${moeda(p.preco_venda)}</td>
+        <td>${p.estoque}</td><td>${p.estoque_minimo}</td></tr>`;
+    }).join('') || `<tr><td colspan="8" style="text-align:center;color:var(--cinza)">Nenhum produto cadastrado.</td></tr>`;
+    tbody.querySelectorAll('tr[data-id]').forEach(tr=>{
+      tr.onclick = ()=>{
+        const pid = Number(tr.dataset.id);
+        const p = produtos.find(x=>x.id===pid);
+        if(!p) return;
+        selProdutoId = pid; editingProdutoId = pid;
+        document.getElementById('p_codigo').value = p.codigo||'';
+        document.getElementById('p_nome').value = p.nome||'';
+        document.getElementById('p_categoria').value = p.categoria||'';
+        document.getElementById('p_custo').value = p.preco_custo||'';
+        document.getElementById('p_margem').value = p.margem_lucro||'';
+        document.getElementById('p_venda').value = p.preco_venda||'';
+        document.getElementById('p_estoque').value = p.estoque||'';
+        document.getElementById('p_minimo').value = p.estoque_minimo||'';
+        desenharTabela();
+      };
+    });
+  }
+  desenharTabela();
+
+  document.getElementById('btnSalvarProduto').onclick = async ()=>{
+    const nome = document.getElementById('p_nome').value.trim();
+    if(!nome){ toast('Informe o nome do produto.', true); return; }
+    const preco_custo = parseFloat((document.getElementById('p_custo').value||'0').replace(',','.')) || 0;
+    const margem_lucro = parseFloat((document.getElementById('p_margem').value||'0').replace(',','.')) || 0;
+    const preco_venda = parseFloat((document.getElementById('p_venda').value||'0').replace(',','.')) || 0;
+    const estoque = parseInt(document.getElementById('p_estoque').value||'0') || 0;
+    const estoque_minimo = parseInt(document.getElementById('p_minimo').value||'0') || 0;
+    const codigo = document.getElementById('p_codigo').value.trim() || null;
+    const categoria = document.getElementById('p_categoria').value.trim();
+    const eraNovo = !editingProdutoId;
+    const payload = { codigo, nome, categoria, preco_custo, margem_lucro, preco_venda, estoque, estoque_minimo };
+    let err;
+    if(editingProdutoId){
+      ({ error: err } = await sb.from('produtos').update(payload).eq('id', editingProdutoId));
+    } else {
+      ({ error: err } = await sb.from('produtos').insert(payload));
+    }
+    if(err){
+      if(err.code === '23505') toast('Já existe um produto com esse código.', true);
+      else toast('Erro ao salvar: ' + err.message, true);
+      return;
+    }
+    limparForm();
+    renderProdutos();
+    if(eraNovo && confirmar(`Produto '${nome}' cadastrado! Deseja gerar etiquetas para ele agora?`)){
+      const qtdStr = prompt('Quantas etiquetas deseja imprimir?', '1');
+      const qtd = parseInt(qtdStr);
+      if(qtd && qtd>0){ abrirEtiquetas([{ nome, preco: preco_venda, codigo, qtd }]); }
+    }
+  };
+
+  document.getElementById('btnExcluirProduto').onclick = async ()=>{
+    if(!selProdutoId){ toast('Selecione um produto na lista.'); return; }
+    if(!confirmar('Excluir este produto?')) return;
+    await sb.from('produtos').update({ ativo:false }).eq('id', selProdutoId);
+    limparForm();
+    renderProdutos();
+  };
+
+  document.getElementById('btnEtiquetaSelecionado').onclick = ()=>{
+    if(!selProdutoId){ toast('Selecione um produto na lista.'); return; }
+    const p = produtos.find(x=>x.id===selProdutoId);
+    if(!p) return;
+    const qtdStr = prompt('Quantas etiquetas deseja imprimir?', '1');
+    const qtd = parseInt(qtdStr);
+    if(qtd && qtd>0){ abrirEtiquetas([{ nome:p.nome, preco:p.preco_venda, codigo:p.codigo, qtd }]); }
+  };
+
+  document.getElementById('btnBaixarModelo').onclick = ()=>{
+    const linhas = [
+      ['codigo','nome','categoria','preco_custo','margem_lucro','preco_venda','estoque','estoque_minimo'],
+      ['CAM001','Camiseta HYDRA P','Vestuário','25.00','100','50.00','20','5'],
+      ['','Chaveiro HYDRA','Acessórios','3.50','140','8.40','40','10'],
+    ];
+    const csv = linhas.map(l=>l.join(';')).join('\r\n');
+    const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'modelo_produtos_hydra.csv';
+    a.click();
+    toast('Planilha modelo baixada! Preencha uma linha por produto e depois importe.');
+  };
+
+  document.getElementById('btnImportar').onclick = ()=> document.getElementById('fileImportar').click();
+  document.getElementById('fileImportar').onchange = async (ev)=>{
+    const file = ev.target.files[0];
+    if(!file) return;
+    const texto = await file.text();
+    const delim = (texto.split('\n')[0].split(';').length > texto.split('\n')[0].split(',').length) ? ';' : ',';
+    const linhas = texto.replace(/\r/g,'').split('\n').filter(l=>l.trim()!=='');
+    const cabecalho = linhas[0].split(delim).map(c=>c.trim().toLowerCase().replace(/^\uFEFF/,''));
+    if(!cabecalho.includes('nome')){
+      toast('A planilha precisa ter uma coluna "nome". Baixe a planilha modelo para ver o formato.', true);
+      return;
+    }
+    let incluidos=0, atualizados=0, ignorados=0;
+    for(let i=1;i<linhas.length;i++){
+      const campos = linhas[i].split(delim);
+      const linha = {};
+      cabecalho.forEach((c,idx)=> linha[c] = (campos[idx]||'').trim());
+      const nome = linha.nome || '';
+      if(!nome){ ignorados++; continue; }
+      const numero = (chave)=>{ const v=(linha[chave]||'').replace(',','.'); const n=parseFloat(v); return isNaN(n)?0:n; };
+      const codigo = linha.codigo || null;
+      const categoria = linha.categoria || '';
+      const preco_custo = numero('preco_custo');
+      const margem_lucro = numero('margem_lucro');
+      let preco_venda = numero('preco_venda');
+      if(preco_venda===0 && preco_custo>0 && margem_lucro>0) preco_venda = preco_custo*(1+margem_lucro/100);
+      const estoque = Math.trunc(numero('estoque'));
+      const estoque_minimo = Math.trunc(numero('estoque_minimo'));
+      let existenteId = null;
+      if(codigo){
+        const { data: ex } = await sb.from('produtos').select('id').eq('codigo', codigo).maybeSingle();
+        if(ex) existenteId = ex.id;
+      }
+      if(existenteId){
+        const { error } = await sb.from('produtos').update({ nome, categoria, preco_custo, margem_lucro, preco_venda, estoque, estoque_minimo, ativo:true }).eq('id', existenteId);
+        if(error) ignorados++; else atualizados++;
+      } else {
+        const { error } = await sb.from('produtos').insert({ codigo, nome, categoria, preco_custo, margem_lucro, preco_venda, estoque, estoque_minimo });
+        if(error) ignorados++; else incluidos++;
+      }
+    }
+    ev.target.value = '';
+    renderProdutos();
+    toast(`✅ ${incluidos} produto(s) novo(s)\n🔄 ${atualizados} atualizado(s)\n⚠ ${ignorados} ignorada(s)`);
+  };
+}
+
+// ---------------------------------------------------------------------
+// ETIQUETAS (print)
+// ---------------------------------------------------------------------
+function montarHtmlEtiquetas(itens){
+  const blocos = [];
+  itens.forEach(it=>{
+    for(let i=0;i<it.qtd;i++){
+      blocos.push(`<div class="etiqueta">
+        <div class="nome">${esc(it.nome)}</div>
+        <div class="preco">${moeda(it.preco)}</div>
+        <div class="codigo">${esc(it.codigo)||''}</div>
+        <div class="equipe">HYDRA 16052</div>
+      </div>`);
+    }
+  });
+  return `<!DOCTYPE html><html lang="pt-br"><head><meta charset="utf-8"><title>Etiquetas HYDRA 16052</title>
+  <style>
+    @page{size:A4;margin:10mm;} body{font-family:'Segoe UI',Arial,sans-serif;margin:0;}
+    .folha{display:flex;flex-wrap:wrap;gap:6mm;}
+    .etiqueta{width:55mm;height:30mm;border:1px dashed #999;border-radius:4px;padding:3mm;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;page-break-inside:avoid;}
+    .nome{font-weight:bold;font-size:12pt;color:#111;} .preco{font-weight:bold;font-size:14pt;color:#C1121F;}
+    .codigo{font-size:8pt;color:#666;} .equipe{font-size:7pt;color:#999;margin-top:2mm;}
+    .instrucoes{margin-bottom:6mm;font-size:10pt;color:#666;} @media print{.instrucoes{display:none;}}
+  </style></head><body>
+  <div class="instrucoes">Pressione Ctrl+P (ou Cmd+P no Mac) para imprimir estas etiquetas.</div>
+  <div class="folha">${blocos.join('')}</div>
+  </body></html>`;
+}
+function abrirEtiquetas(itens){
+  const html = montarHtmlEtiquetas(itens);
+  const w = window.open('', '_blank');
+  if(!w){ toast('Permita pop-ups para gerar as etiquetas.', true); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+async function renderEtiquetas(){
+  const content = document.getElementById('content');
+  const produtos = await fetchProdutosAtivos();
+  content.innerHTML = `
+    <div class="section">
+      <div class="titulo">Impressão de etiquetas</div>
+      <div class="sub">Defina a quantidade de etiquetas por produto. O programa abre uma página pronta para imprimir (Ctrl+P).</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Produto</th><th>Preço</th><th>Qtd. de etiquetas</th></tr></thead>
+        <tbody id="etiquetasTbody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:16px"><button class="btn-primary" id="btnGerarEtiquetas">Gerar etiquetas para impressão</button></div>
+  `;
+  const tbody = document.getElementById('etiquetasTbody');
+  tbody.innerHTML = produtos.map(p=>`<tr>
+    <td>${esc(p.nome)}</td><td>${moeda(p.preco_venda)}</td>
+    <td><input type="number" min="0" max="500" class="qtd-input" data-id="${p.id}" value="${etiquetaQtds[p.id]||0}"></td>
+  </tr>`).join('') || `<tr><td colspan="3" style="text-align:center;color:var(--cinza)">Nenhum produto cadastrado.</td></tr>`;
+  tbody.querySelectorAll('input[type=number]').forEach(inp=>{
+    inp.onchange = ()=>{ etiquetaQtds[inp.dataset.id] = parseInt(inp.value)||0; };
+  });
+  document.getElementById('btnGerarEtiquetas').onclick = ()=>{
+    const pares = Object.entries(etiquetaQtds).filter(([,q])=>q>0);
+    if(!pares.length){ toast('Defina a quantidade de pelo menos um produto.', true); return; }
+    const itens = pares.map(([pid,qtd])=>{
+      const p = produtos.find(x=>String(x.id)===String(pid));
+      return { nome:p.nome, preco:p.preco_venda, codigo:p.codigo, qtd };
+    });
+    abrirEtiquetas(itens);
+  };
+}
+
+// ---------------------------------------------------------------------
+// EVENTOS
+// ---------------------------------------------------------------------
+async function renderEventos(){
+  const content = document.getElementById('content');
+  const { data: eventos } = await sb.from('eventos').select('*').order('id', { ascending:false });
+  content.innerHTML = `
+    <div class="titulo section">Eventos de venda</div>
+    <div class="card-box section">
+      <div class="form-row">
+        <div class="field"><label>Nome do evento</label><input id="ev_nome" style="width:220px"></div>
+        <div class="field"><label>Data (dd/mm/aaaa)</label><input id="ev_data" style="width:120px"></div>
+        <div class="field"><label>Local</label><input id="ev_local" style="width:180px"></div>
+        <div class="field"><label>Tipo</label>
+          <select id="ev_tipo" style="width:130px"><option>Presencial</option><option>Online</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-primary" id="btnSalvarEvento">Adicionar evento</button>
+        <button class="btn" id="btnLimparEvento">Limpar / Cancelar edição</button>
+      </div>
+      <div class="small-note">Dica: clique num evento da lista para editá-lo.</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Evento</th><th>Data</th><th>Local</th><th>Tipo</th></tr></thead>
+        <tbody id="eventosTbody"></tbody>
+      </table>
+    </div>
+  `;
+  function limpar(){
+    document.getElementById('ev_nome').value='';
+    document.getElementById('ev_data').value='';
+    document.getElementById('ev_local').value='';
+    document.getElementById('ev_tipo').value='Presencial';
+    editingEventoId = null; selEventoId = null;
+    document.getElementById('btnSalvarEvento').textContent = 'Adicionar evento';
+    desenhar();
+  }
+  document.getElementById('btnLimparEvento').onclick = limpar;
+
+  function desenhar(){
+    const tbody = document.getElementById('eventosTbody');
+    tbody.innerHTML = (eventos||[]).map(e=>`<tr class="tabela-row ${selEventoId===e.id?'selected':''}" data-id="${e.id}">
+      <td>${esc(e.nome)}</td><td>${esc(e.data)||'-'}</td><td>${esc(e.local)||'-'}</td><td>${esc(e.tipo)}</td></tr>`).join('')
+      || `<tr><td colspan="4" style="text-align:center;color:var(--cinza)">Nenhum evento cadastrado.</td></tr>`;
+    tbody.querySelectorAll('tr[data-id]').forEach(tr=>{
+      tr.onclick = ()=>{
+        const eid = Number(tr.dataset.id);
+        const e = (eventos||[]).find(x=>x.id===eid);
+        if(!e) return;
+        selEventoId = eid; editingEventoId = eid;
+        document.getElementById('ev_nome').value = e.nome||'';
+        document.getElementById('ev_data').value = e.data||'';
+        document.getElementById('ev_local').value = e.local||'';
+        document.getElementById('ev_tipo').value = e.tipo||'Presencial';
+        document.getElementById('btnSalvarEvento').textContent = 'Salvar alterações';
+        desenhar();
+      };
+    });
+  }
+  desenhar();
+
+  document.getElementById('btnSalvarEvento').onclick = async ()=>{
+    const nome = document.getElementById('ev_nome').value.trim();
+    if(!nome){ toast('Informe o nome do evento.', true); return; }
+    const payload = {
+      nome, data: document.getElementById('ev_data').value.trim(),
+      local: document.getElementById('ev_local').value.trim(),
+      tipo: document.getElementById('ev_tipo').value,
+    };
+    if(editingEventoId) await sb.from('eventos').update(payload).eq('id', editingEventoId);
+    else await sb.from('eventos').insert(payload);
+    limpar();
+    renderEventos();
+  };
+}
+
+// ---------------------------------------------------------------------
+// NOVA VENDA
+// ---------------------------------------------------------------------
+async function renderVenda(){
+  const content = document.getElementById('content');
+  const { data: eventos } = await sb.from('eventos').select('id,nome').order('id',{ascending:false});
+  const { data: estudantes } = await sb.from('estudantes').select('id,nome').eq('ativo',true).order('nome');
+  const produtos = await fetchProdutosAtivos();
+
+  content.innerHTML = `
+    <div class="titulo section">Registrar nova venda</div>
+    <div class="card-box" style="margin-bottom:16px">
+      <div class="form-row">
+        <div class="field"><label>Evento</label>
+          <select id="v_evento" style="width:220px">
+            <option value="">(sem evento)</option>
+            ${(eventos||[]).map(e=>`<option value="${e.id}">${esc(e.nome)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Vendedor(a)</label>
+          <select id="v_vendedor" style="width:190px">
+            ${(estudantes||[]).map(e=>`<option value="${e.id}" ${e.nome===currentUser.nome?'selected':''}>${esc(e.nome)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Forma de pagamento</label>
+          <select id="v_pagamento" style="width:130px"><option>Dinheiro</option><option>Pix</option><option>Cartão</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Produto</label>
+          <select id="v_produto" style="width:280px">
+            ${produtos.map(p=>`<option value="${p.id}">${esc(p.nome)} (${moeda(p.preco_venda)}) - estoque ${p.estoque}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Quantidade</label><input id="v_qtd" value="1" style="width:70px"></div>
+        <div class="field"><button class="btn-primary" id="btnAddItem">Adicionar item</button></div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th><th></th></tr></thead>
+        <tbody id="carrinhoTbody"></tbody>
+      </table>
+    </div>
+    <div class="flex-between" style="margin-top:14px">
+      <div class="cart-total" id="cartTotal">Total: R$ 0,00</div>
+      <button class="btn-primary" id="btnFinalizar">Finalizar venda</button>
+    </div>
+  `;
+
+  function redesenharCarrinho(){
+    const tbody = document.getElementById('carrinhoTbody');
+    let total = 0;
+    tbody.innerHTML = cart.map((i,idx)=>{
+      const subtotal = i.qtd*i.preco;
+      total += subtotal;
+      return `<tr><td>${esc(i.nome)}</td><td>${i.qtd}</td><td>${moeda(i.preco)}</td><td>${moeda(subtotal)}</td>
+        <td><button class="btn btn-sm" data-idx="${idx}">Remover</button></td></tr>`;
+    }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--cinza)">Carrinho vazio.</td></tr>`;
+    tbody.querySelectorAll('button[data-idx]').forEach(b=>{
+      b.onclick = ()=>{ cart.splice(Number(b.dataset.idx),1); redesenharCarrinho(); };
+    });
+    document.getElementById('cartTotal').textContent = 'Total: ' + moeda(total);
+  }
+  redesenharCarrinho();
+
+  document.getElementById('btnAddItem').onclick = ()=>{
+    const pid = Number(document.getElementById('v_produto').value);
+    const p = produtos.find(x=>x.id===pid);
+    if(!p){ toast('Selecione um produto.', true); return; }
+    const qtd = parseInt(document.getElementById('v_qtd').value);
+    if(!qtd || qtd<=0){ toast('Quantidade inválida.', true); return; }
+    const jaNoCarrinho = cart.filter(i=>i.produto_id===pid).reduce((s,i)=>s+i.qtd,0);
+    if(jaNoCarrinho + qtd > p.estoque){
+      toast(`Só há ${p.estoque} unidade(s) de '${p.nome}' em estoque (${jaNoCarrinho} já no carrinho).`, true);
+      return;
+    }
+    cart.push({ produto_id:pid, nome:p.nome, qtd, preco:p.preco_venda, custo:p.preco_custo });
+    redesenharCarrinho();
+  };
+
+  document.getElementById('btnFinalizar').onclick = async ()=>{
+    if(!cart.length){ toast('Adicione pelo menos um produto à venda.', true); return; }
+    const estudanteId = Number(document.getElementById('v_vendedor').value);
+    if(!estudanteId){ toast('Selecione o(a) vendedor(a).', true); return; }
+    const eventoVal = document.getElementById('v_evento').value;
+    const eventoId = eventoVal ? Number(eventoVal) : null;
+    const pagamento = document.getElementById('v_pagamento').value;
+    const total = cart.reduce((s,i)=>s+i.qtd*i.preco,0);
+    const agora = new Date();
+    const dataHora = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
+    const { data: vendaRow, error: errVenda } = await sb.from('vendas').insert({
+      data_hora: dataHora, evento_id: eventoId, estudante_id: estudanteId, forma_pagamento: pagamento, total,
+    }).select('id').single();
+    if(errVenda){ toast('Erro ao registrar venda: ' + errVenda.message, true); return; }
+    const vendaId = vendaRow.id;
+
+    const avisos = [];
+    for(const i of cart){
+      await sb.from('itens_venda').insert({
+        venda_id: vendaId, produto_id: i.produto_id, quantidade: i.qtd,
+        preco_unitario: i.preco, custo_unitario: i.custo,
+      });
+      const { data: prodAtual } = await sb.from('produtos').select('estoque,estoque_minimo,nome').eq('id', i.produto_id).single();
+      const novoEstoque = (prodAtual?.estoque ?? 0) - i.qtd;
+      await sb.from('produtos').update({ estoque: novoEstoque }).eq('id', i.produto_id);
+      if(prodAtual && novoEstoque <= prodAtual.estoque_minimo) avisos.push(`- ${prodAtual.nome} (restam ${novoEstoque})`);
+    }
+
+    cart = [];
+    let msg = `Venda registrada com sucesso!\nTotal: ${moeda(total)}`;
+    if(avisos.length) msg += '\n\n⚠ Estoque baixo:\n' + avisos.join('\n');
+    toast(msg);
+    renderVenda();
+  };
+}
+
+// ---------------------------------------------------------------------
+// RELATÓRIOS
+// ---------------------------------------------------------------------
+async function renderRelatorios(){
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="titulo section">Relatórios</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="btn-primary" id="btnRelEstudante">Por estudante</button>
+      <button class="btn-primary" id="btnRelProduto">Por produto</button>
+      <button class="btn-primary" id="btnRelLucro">Lucro geral</button>
+    </div>
+    <div class="table-wrap"><table><thead id="relHead"></thead><tbody id="relBody"></tbody></table></div>
+  `;
+  document.getElementById('btnRelEstudante').onclick = relatorioEstudante;
+  document.getElementById('btnRelProduto').onclick = relatorioProduto;
+  document.getElementById('btnRelLucro').onclick = relatorioLucro;
+  if(relatorioAtual==='estudante') relatorioEstudante();
+  else if(relatorioAtual==='produto') relatorioProduto();
+  else relatorioLucro();
+}
+function setRelHead(cols){ document.getElementById('relHead').innerHTML = '<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>'; }
+
+async function relatorioEstudante(){
+  relatorioAtual='estudante';
+  setRelHead(['Estudante','Nº de vendas','Itens vendidos','Total vendido']);
+  const { data: estudantes } = await sb.from('estudantes').select('id,nome').eq('ativo',true).order('nome');
+  const { data: vendas } = await sb.from('vendas').select('id,estudante_id,itens_venda(quantidade,preco_unitario)');
+  const linhas = (estudantes||[]).map(e=>{
+    const vDoEstudante = (vendas||[]).filter(v=>v.estudante_id===e.id);
+    const nVendas = vDoEstudante.length;
+    let itensQtd=0, total=0;
+    vDoEstudante.forEach(v=> (v.itens_venda||[]).forEach(it=>{ itensQtd+=it.quantidade; total+=it.quantidade*it.preco_unitario; }));
+    return { nome:e.nome, nVendas, itensQtd, total };
+  }).sort((a,b)=>b.total-a.total);
+  document.getElementById('relBody').innerHTML = linhas.map(l=>`<tr><td>${esc(l.nome)}</td><td>${l.nVendas}</td><td>${l.itensQtd}</td><td>${moeda(l.total)}</td></tr>`).join('')
+    || `<tr><td colspan="4" style="text-align:center;color:var(--cinza)">Sem dados.</td></tr>`;
+}
+async function relatorioProduto(){
+  relatorioAtual='produto';
+  setRelHead(['Produto','Qtd. vendida','Total vendido','Lucro']);
+  const { data: produtos } = await sb.from('produtos').select('id,nome,itens_venda(quantidade,preco_unitario,custo_unitario)').eq('ativo',true);
+  const linhas = (produtos||[]).map(p=>{
+    let qtd=0,total=0,lucro=0;
+    (p.itens_venda||[]).forEach(it=>{ qtd+=it.quantidade; total+=it.quantidade*it.preco_unitario; lucro+=it.quantidade*(it.preco_unitario-it.custo_unitario); });
+    return { nome:p.nome, qtd, total, lucro };
+  }).sort((a,b)=>b.total-a.total);
+  document.getElementById('relBody').innerHTML = linhas.map(l=>`<tr><td>${esc(l.nome)}</td><td>${l.qtd}</td><td>${moeda(l.total)}</td><td>${moeda(l.lucro)}</td></tr>`).join('')
+    || `<tr><td colspan="4" style="text-align:center;color:var(--cinza)">Sem dados.</td></tr>`;
+}
+async function relatorioLucro(){
+  relatorioAtual='lucro';
+  setRelHead(['Data da venda','Nº de vendas','Faturamento','Custo','Lucro']);
+  const { data: vendas } = await sb.from('vendas').select('id,data_hora,itens_venda(quantidade,preco_unitario,custo_unitario)').order('id',{ascending:false});
+  const porDia = new Map();
+  (vendas||[]).forEach(v=>{
+    const dia = (v.data_hora||'').slice(0,10) || '-';
+    if(!porDia.has(dia)) porDia.set(dia, { vendas:new Set(), fat:0, custo:0, lucro:0 });
+    const acc = porDia.get(dia);
+    acc.vendas.add(v.id);
+    (v.itens_venda||[]).forEach(it=>{
+      acc.fat += it.quantidade*it.preco_unitario;
+      acc.custo += it.quantidade*it.custo_unitario;
+      acc.lucro += it.quantidade*(it.preco_unitario-it.custo_unitario);
+    });
+  });
+  const linhas = [...porDia.entries()];
+  document.getElementById('relBody').innerHTML = linhas.map(([dia,a])=>`<tr><td>${esc(dia)}</td><td>${a.vendas.size}</td><td>${moeda(a.fat)}</td><td>${moeda(a.custo)}</td><td>${moeda(a.lucro)}</td></tr>`).join('')
+    || `<tr><td colspan="5" style="text-align:center;color:var(--cinza)">Sem dados.</td></tr>`;
+}
+
+// ---------------------------------------------------------------------
+// COMPARATIVO DE EVENTOS
+// ---------------------------------------------------------------------
+async function renderComparativo(){
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="section">
+      <div class="titulo">Comparativo de vendas por evento</div>
+      <div class="sub">Veja como cada evento performou e quais produtos mais venderam em cada um.</div>
+    </div>
+    <div class="section">
+      <div class="titulo" style="font-size:15px">Resumo por evento</div>
+      <div class="table-wrap" style="margin-top:8px">
+        <table><thead><tr><th>Evento</th><th>Tipo</th><th>Nº vendas</th><th>Faturamento</th><th>Lucro</th></tr></thead>
+        <tbody id="resumoTbody"></tbody></table>
+      </div>
+    </div>
+    <div class="flex-between" style="margin-bottom:10px">
+      <label style="margin:0">Detalhe por produto — filtrar evento:</label>
+      <select id="filtroEvento" style="width:260px"></select>
+    </div>
+    <div class="table-wrap">
+      <table><thead><tr><th>Evento</th><th>Produto</th><th>Qtd. vendida</th><th>Total vendido</th><th>Lucro</th></tr></thead>
+      <tbody id="detalheTbody"></tbody></table>
+    </div>
+  `;
+
+  const { data: vendas } = await sb.from('vendas').select('id,evento_id,eventos(nome,tipo),itens_venda(quantidade,preco_unitario,custo_unitario)');
+  const resumoMap = new Map();
+  (vendas||[]).forEach(v=>{
+    const nome = v.eventos?.nome || 'Sem evento';
+    const tipo = v.eventos?.tipo || '-';
+    if(!resumoMap.has(nome)) resumoMap.set(nome, { tipo, nVendas:0, fat:0, lucro:0 });
+    const acc = resumoMap.get(nome);
+    acc.nVendas += 1;
+    (v.itens_venda||[]).forEach(it=>{ acc.fat += it.quantidade*it.preco_unitario; acc.lucro += it.quantidade*(it.preco_unitario-it.custo_unitario); });
+  });
+  const resumo = [...resumoMap.entries()].sort((a,b)=>b[1].fat-a[1].fat);
+  document.getElementById('resumoTbody').innerHTML = resumo.map(([nome,a])=>`<tr><td>${esc(nome)}</td><td>${esc(a.tipo)}</td><td>${a.nVendas}</td><td>${moeda(a.fat)}</td><td>${moeda(a.lucro)}</td></tr>`).join('')
+    || `<tr><td colspan="5" style="text-align:center;color:var(--cinza)">Sem dados.</td></tr>`;
+
+  const { data: itens } = await sb.from('itens_venda').select('quantidade,preco_unitario,custo_unitario,produtos(nome),vendas(evento_id,eventos(nome))');
+  const detalheMap = new Map();
+  (itens||[]).forEach(it=>{
+    const nomeEvento = it.vendas?.eventos?.nome || 'Sem evento';
+    const nomeProd = it.produtos?.nome || '-';
+    const chave = nomeEvento + '||' + nomeProd;
+    if(!detalheMap.has(chave)) detalheMap.set(chave, { evento:nomeEvento, produto:nomeProd, qtd:0, total:0, lucro:0 });
+    const acc = detalheMap.get(chave);
+    acc.qtd += it.quantidade; acc.total += it.quantidade*it.preco_unitario; acc.lucro += it.quantidade*(it.preco_unitario-it.custo_unitario);
+  });
+  const detalhe = [...detalheMap.values()].sort((a,b)=> a.evento.localeCompare(b.evento) || b.total-a.total);
+
+  const eventosDisponiveis = [...new Set(detalhe.map(d=>d.evento))].sort();
+  const filtroSel = document.getElementById('filtroEvento');
+  filtroSel.innerHTML = ['Todos os eventos', ...eventosDisponiveis].map(e=>`<option>${esc(e)}</option>`).join('');
+  function preencherDetalhe(){
+    const filtro = filtroSel.value;
+    const linhas = detalhe.filter(d=> filtro==='Todos os eventos' || d.evento===filtro);
+    document.getElementById('detalheTbody').innerHTML = linhas.map(d=>`<tr><td>${esc(d.evento)}</td><td>${esc(d.produto)}</td><td>${d.qtd}</td><td>${moeda(d.total)}</td><td>${moeda(d.lucro)}</td></tr>`).join('')
+      || `<tr><td colspan="5" style="text-align:center;color:var(--cinza)">Sem dados.</td></tr>`;
+  }
+  filtroSel.onchange = preencherDetalhe;
+  preencherDetalhe();
+}
+
+// ---------------------------------------------------------------------
+// ABA PERSONALIZADA (somente leitura)
+// ---------------------------------------------------------------------
+async function renderCustomTab(id){
+  const content = document.getElementById('content');
+  const { data } = await sb.from('abas_personalizadas').select('titulo,conteudo').eq('id', id).maybeSingle();
+  if(!data){ content.innerHTML = '<p>Aba não encontrada.</p>'; return; }
+  content.innerHTML = `<div class="titulo section">${esc(data.titulo)}</div><div class="custom-tab-box">${esc(data.conteudo)||''}</div>`;
+}
+
+// ---------------------------------------------------------------------
+// CONFIGURAÇÕES
+// ---------------------------------------------------------------------
+async function renderConfig(){
+  const content = document.getElementById('content');
+  if(currentUser.tipo !== 'admin'){
+    content.innerHTML = `<div class="lock-wrap"><div class="titulo">🚫 Acesso restrito</div><div class="sub">Esta área é exclusiva de administradores da equipe.</div></div>`;
+    return;
+  }
+  if(!configDesbloqueada){
+    content.innerHTML = `
+      <div class="lock-wrap">
+        <div class="titulo">🔒 Área do administrador</div>
+        <div class="sub">Digite o código de acesso para gerenciar usuários e configurações.</div>
+        <input id="codigoAcesso" type="password">
+        <div><button class="btn-primary" id="btnDesbloquear">Desbloquear</button></div>
+      </div>`;
+    document.getElementById('btnDesbloquear').onclick = async ()=>{
+      const codigo = document.getElementById('codigoAcesso').value.trim();
+      const correto = await getConfigValor('codigo_acesso','2026');
+      if(codigo === correto){ configDesbloqueada = true; renderConfig(); }
+      else toast('Código de acesso incorreto.', true);
+    };
+    document.getElementById('codigoAcesso').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('btnDesbloquear').click(); });
+    return;
+  }
+
+  const { data: estudantes } = await sb.from('estudantes').select('*').order('ativo',{ascending:false}).order('nome');
+  const vis = await getVisibilidadeAbas();
+  const { data: abas } = await sb.from('abas_personalizadas').select('id,titulo').order('id');
+
+  content.innerHTML = `
+    <div class="flex-between section">
+      <div class="titulo">⚙ Configurações do administrador</div>
+      <button class="btn" id="btnBloquear">Bloquear novamente</button>
+    </div>
+
+    <div class="card-box section">
+      <div class="form-row">
+        <div class="field"><label>Código de acesso a esta área</label><input id="novoCodigo" style="width:140px"></div>
+        <div class="field"><button class="btn-primary" id="btnSalvarCodigo">Salvar novo código</button></div>
+      </div>
+    </div>
+    <hr class="divider">
+
+    <div class="titulo" style="font-size:16px;margin-bottom:10px">Usuários (estudantes com acesso ao programa)</div>
+    <div class="card-box section">
+      <div class="form-row">
+        <div class="field"><label>Nome completo</label><input id="u_nome" style="width:200px"></div>
+        <div class="field"><label>Login (sem espaço)</label><input id="u_login" style="width:130px"></div>
+        <div class="field"><label>PIN (senha numérica)</label><input id="u_pin" style="width:100px"></div>
+        <div class="field"><label>Tipo de acesso</label>
+          <select id="u_tipo" style="width:150px"><option>Vendedor(a)</option><option>Administrador(a)</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-primary" id="btnIncluirUsuario">Incluir usuário</button>
+        <button class="btn" id="btnAlternarTipo">Alternar Admin/Vendedor(a)</button>
+        <button class="btn" id="btnExcluirUsuario">Excluir definitivamente</button>
+        <button class="btn" id="btnReativarUsuario">Reativar selecionado</button>
+      </div>
+    </div>
+    <div class="table-wrap section">
+      <table><thead><tr><th>Nome</th><th>Login</th><th>PIN</th><th>Tipo</th><th>Status</th></tr></thead>
+      <tbody id="usuariosTbody"></tbody></table>
+    </div>
+    <hr class="divider">
+
+    <div class="titulo" style="font-size:16px">Abas liberadas para vendedores(as)</div>
+    <div class="sub" style="margin-bottom:8px">"Início" e "Nova Venda" ficam sempre visíveis. "Configurações" é sempre exclusiva do administrador.</div>
+    <div class="checks">
+      ${ABAS_CONTROLAVEIS.map(([chave,label])=>`<label><input type="checkbox" data-chave="${chave}" ${vis[chave]?'checked':''}> ${label}</label>`).join('')}
+    </div>
+    <button class="btn-primary" id="btnSalvarAbas">Salvar abas liberadas</button>
+    <hr class="divider">
+
+    <div class="titulo" style="font-size:16px">Abas personalizadas do programa</div>
+    <div class="sub" style="margin-bottom:8px">Crie abas com título e texto livre (avisos, regulamentos, links, instruções...). Aparecem para todo mundo, antes de Configurações.</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn-primary" id="btnNovaAba">➕ Nova aba</button>
+      <button class="btn" id="btnEditarAba">✏ Editar selecionada</button>
+      <button class="btn" id="btnExcluirAba">🗑 Excluir selecionada</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Título da aba</th></tr></thead><tbody id="abasTbody"></tbody></table></div>
+    <hr class="divider">
+
+    <div class="titulo" style="font-size:16px">Histórico de vendas</div>
+    <div class="sub" style="margin-bottom:8px">Excluir uma venda devolve automaticamente as quantidades ao estoque de cada produto. Essa ação não pode ser desfeita.</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Data/hora</th><th>Evento</th><th>Vendedor(a)</th><th>Pagamento</th><th>Total</th><th></th></tr></thead>
+      <tbody id="vendasTbody"></tbody>
+    </table></div>
+  `;
+
+  document.getElementById('btnBloquear').onclick = ()=>{ configDesbloqueada = false; renderConfig(); };
+  document.getElementById('btnSalvarCodigo').onclick = async ()=>{
+    const novo = document.getElementById('novoCodigo').value.trim();
+    if(!novo){ toast('Digite o novo código de acesso.', true); return; }
+    await setConfigValor('codigo_acesso', novo);
+    document.getElementById('novoCodigo').value='';
+    toast('Código de acesso atualizado.');
+  };
+
+  function desenharUsuarios(){
+    const tbody = document.getElementById('usuariosTbody');
+    tbody.innerHTML = (estudantes||[]).map(e=>{
+      const status = e.ativo ? 'Ativo' : 'Inativo';
+      const tipoRotulo = e.tipo==='admin' ? 'Administrador(a)' : 'Vendedor(a)';
+      let cor = '';
+      if(!e.ativo) cor = 'color:var(--cinza)';
+      else if(e.tipo==='admin') cor = 'color:var(--vermelho-escuro)';
+      return `<tr class="tabela-row ${selUsuarioLogin===e.login?'selected':''}" data-login="${esc(e.login)}" style="${cor}">
+        <td>${esc(e.nome)}</td><td>${esc(e.login)}</td><td>${esc(e.pin)}</td><td>${tipoRotulo}</td><td>${status}</td></tr>`;
+    }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--cinza)">Nenhum usuário.</td></tr>`;
+    tbody.querySelectorAll('tr[data-login]').forEach(tr=>{
+      tr.onclick = ()=>{ selUsuarioLogin = tr.dataset.login; desenharUsuarios(); };
+    });
+  }
+  desenharUsuarios();
+
+  document.getElementById('btnIncluirUsuario').onclick = async ()=>{
+    const nome = document.getElementById('u_nome').value.trim();
+    const login = document.getElementById('u_login').value.trim().toLowerCase().replace(/\s/g,'');
+    const pin = document.getElementById('u_pin').value.trim();
+    const tipo = document.getElementById('u_tipo').value.startsWith('Admin') ? 'admin' : 'vendedor';
+    if(!nome || !login || !pin){ toast('Preencha nome, login e PIN.', true); return; }
+    const { error } = await sb.from('estudantes').insert({ nome, login, pin, tipo });
+    if(error){
+      if(error.code==='23505') toast('Já existe um usuário com esse login.', true);
+      else toast('Erro: ' + error.message, true);
+      return;
+    }
+    document.getElementById('u_nome').value=''; document.getElementById('u_login').value=''; document.getElementById('u_pin').value='';
+    renderConfig();
+  };
+
+  document.getElementById('btnAlternarTipo').onclick = async ()=>{
+    if(!selUsuarioLogin){ toast('Selecione um usuário na lista.'); return; }
+    const { data: row } = await sb.from('estudantes').select('id,tipo').eq('login', selUsuarioLogin).single();
+    if(!row) return;
+    if(row.tipo === 'admin'){
+      const { count } = await sb.from('estudantes').select('*',{count:'exact',head:true}).eq('tipo','admin').eq('ativo',true);
+      if(count<=1){ toast('Esse é o único administrador ativo. Cadastre outro administrador antes de rebaixar este usuário.', true); return; }
+    }
+    const novoTipo = row.tipo==='admin' ? 'vendedor' : 'admin';
+    await sb.from('estudantes').update({ tipo: novoTipo }).eq('id', row.id);
+    renderConfig();
+  };
+
+  document.getElementById('btnExcluirUsuario').onclick = async ()=>{
+    if(!selUsuarioLogin){ toast('Selecione um usuário na lista.'); return; }
+    if(selUsuarioLogin === 'admin'){ toast('O usuário admin não pode ser excluído.', true); return; }
+    const { data: row } = await sb.from('estudantes').select('id,nome').eq('login', selUsuarioLogin).single();
+    if(!row) return;
+    const { count: temVendas } = await sb.from('vendas').select('*',{count:'exact',head:true}).eq('estudante_id', row.id);
+    if(temVendas>0){
+      if(confirmar(`'${row.nome}' já tem vendas registradas no histórico, então não pode ser excluído. Deseja apenas desativar o acesso dele(a)?`)){
+        await sb.from('estudantes').update({ ativo:false }).eq('login', selUsuarioLogin);
+        renderConfig();
+      }
+      return;
+    }
+    if(!confirmar(`Excluir definitivamente o usuário '${row.nome}'? Essa ação não pode ser desfeita.`)) return;
+    await sb.from('estudantes').delete().eq('login', selUsuarioLogin);
+    renderConfig();
+  };
+
+  document.getElementById('btnReativarUsuario').onclick = async ()=>{
+    if(!selUsuarioLogin) return;
+    await sb.from('estudantes').update({ ativo:true }).eq('login', selUsuarioLogin);
+    renderConfig();
+  };
+
+  document.getElementById('btnSalvarAbas').onclick = async ()=>{
+    const checks = document.querySelectorAll('.checks input[type=checkbox]');
+    for(const c of checks) await setConfigValor(c.dataset.chave, c.checked ? '1' : '0');
+    toast('Abas atualizadas! Vendedores(as) já logados(as) precisam sair e entrar novamente para ver a mudança.');
+  };
+
+  function desenharAbas(){
+    const tbody = document.getElementById('abasTbody');
+    tbody.innerHTML = (abas||[]).map(a=>`<tr class="tabela-row ${selAbaId===a.id?'selected':''}" data-id="${a.id}"><td>${esc(a.titulo)}</td></tr>`).join('')
+      || `<tr><td style="text-align:center;color:var(--cinza)">Nenhuma aba personalizada.</td></tr>`;
+    tbody.querySelectorAll('tr[data-id]').forEach(tr=>{
+      tr.onclick = ()=>{ selAbaId = Number(tr.dataset.id); desenharAbas(); };
+    });
+  }
+  desenharAbas();
+
+  function abrirModalTexto(titulo, valorInicial, onSalvar){
+    const bg = document.createElement('div');
+    bg.className = 'modal-bg';
+    bg.innerHTML = `<div class="modal-box">
+      <div class="titulo" style="font-size:15px;margin-bottom:4px">${esc(titulo)}</div>
+      <textarea id="modalTextarea">${esc(valorInicial)}</textarea>
+      <div class="modal-actions">
+        <button class="btn" id="modalCancelar">Cancelar</button>
+        <button class="btn-primary" id="modalSalvar">Salvar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(bg);
+    bg.querySelector('#modalCancelar').onclick = ()=> bg.remove();
+    bg.querySelector('#modalSalvar').onclick = ()=>{
+      const texto = bg.querySelector('#modalTextarea').value;
+      bg.remove();
+      onSalvar(texto);
+    };
+  }
+
+  document.getElementById('btnNovaAba').onclick = ()=>{
+    const titulo = prompt('Título da aba (vai aparecer no menu do programa):');
+    if(!titulo || !titulo.trim()) return;
+    abrirModalTexto(`Conteúdo da aba '${titulo.trim()}'`, '', async (conteudo)=>{
+      await sb.from('abas_personalizadas').insert({ titulo: titulo.trim(), conteudo });
+      renderConfig();
+    });
+  };
+  document.getElementById('btnEditarAba').onclick = async ()=>{
+    if(!selAbaId){ toast('Selecione uma aba na lista.'); return; }
+    const { data: row } = await sb.from('abas_personalizadas').select('titulo,conteudo').eq('id', selAbaId).single();
+    if(!row) return;
+    const novoTitulo = prompt('Título da aba:', row.titulo);
+    if(!novoTitulo || !novoTitulo.trim()) return;
+    abrirModalTexto(`Conteúdo da aba '${novoTitulo.trim()}'`, row.conteudo||'', async (conteudo)=>{
+      await sb.from('abas_personalizadas').update({ titulo: novoTitulo.trim(), conteudo }).eq('id', selAbaId);
+      renderConfig();
+    });
+  };
+  document.getElementById('btnExcluirAba').onclick = async ()=>{
+    if(!selAbaId){ toast('Selecione uma aba na lista.'); return; }
+    const a = (abas||[]).find(x=>x.id===selAbaId);
+    if(!confirmar(`Excluir a aba '${a?.titulo}'?`)) return;
+    await sb.from('abas_personalizadas').delete().eq('id', selAbaId);
+    selAbaId = null;
+    renderConfig();
+  };
+
+  await desenharVendas();
+}
+
+async function desenharVendas(){
+  const tbody = document.getElementById('vendasTbody');
+  if(!tbody) return;
+  const { data: vendas } = await sb.from('vendas')
+    .select('id,data_hora,forma_pagamento,total,eventos(nome),estudantes(nome)')
+    .order('id', { ascending:false })
+    .limit(200);
+  tbody.innerHTML = (vendas||[]).map(v=>`<tr>
+      <td>${esc(v.data_hora)||'-'}</td>
+      <td>${esc(v.eventos?.nome)||'Sem evento'}</td>
+      <td>${esc(v.estudantes?.nome)||'-'}</td>
+      <td>${esc(v.forma_pagamento)||'-'}</td>
+      <td>${moeda(v.total)}</td>
+      <td><button class="btn btn-sm" data-venda-id="${v.id}">Excluir</button></td>
+    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--cinza)">Nenhuma venda registrada.</td></tr>`;
+  tbody.querySelectorAll('button[data-venda-id]').forEach(b=>{
+    b.onclick = async ()=>{
+      const vendaId = Number(b.dataset.vendaId);
+      if(!confirmar('Excluir esta venda? As quantidades vendidas voltam ao estoque dos produtos. Essa ação não pode ser desfeita.')) return;
+      const { data: itens } = await sb.from('itens_venda').select('produto_id,quantidade').eq('venda_id', vendaId);
+      for(const it of (itens||[])){
+        const { data: prod } = await sb.from('produtos').select('estoque').eq('id', it.produto_id).single();
+        if(prod){
+          await sb.from('produtos').update({ estoque: (prod.estoque||0) + it.quantidade }).eq('id', it.produto_id);
+        }
+      }
+      await sb.from('itens_venda').delete().eq('venda_id', vendaId);
+      await sb.from('vendas').delete().eq('id', vendaId);
+      toast('Venda excluída e estoque devolvido.');
+      desenharVendas();
+    };
+  });
+}
+
+// ---------------------------------------------------------------------
+// INIT
+// ---------------------------------------------------------------------
+renderLogin();
+</script>
+</body>
+</html>
